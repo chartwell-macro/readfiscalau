@@ -1,0 +1,138 @@
+---
+title: "Release catalogues and discovery"
+author: "Chartwell Macro"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Release catalogues and discovery}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", error = FALSE)
+library(readfiscalau)
+source("_helpers.R")
+```
+
+`readfiscalau` gives applications two complementary catalogue layers for
+finding and selecting fiscal resources:
+
+- discovery parses a current official HTML/CKAN response into candidate or
+  resource rows; and
+- the bundled manifest and coverage panels identify releases and schemas that
+  have been curated, hash-bound, and admitted by the package contract.
+
+Use discovery to find changed or newly published links, then use the manifest
+and coverage panels to select a release that has a known schema and provenance
+contract. A discovered row remains a candidate until it is admitted to the
+manifest; this keeps selection and parsing decisions explicit.
+
+## HTML release discovery
+
+This packaged HTML snapshot is an offline replay fixture shaped like an
+official Treasury downloads page. It contains Budget, MYEFO, and FBO links.
+
+```{r html-discovery}
+html_candidates <- discover_au_fiscal_releases(
+  source = "treasury",
+  raw = example_raw("treasury-downloads.html")
+)
+html_candidates[, c(
+  "source_id", "release_type", "title", "fiscal_year",
+  "resource_url", "discovery_status"
+)]
+```
+
+Each row is a candidate. `discovery_status = "needs_metadata"` is possible
+when the page provides no fiscal year; such a row is not silently promoted to
+a readable release. Finance discovery additionally rejects a June link that
+is labelled as a monthly statement, because June is an annual FBO/CFS boundary.
+
+The live equivalent supplies an official URL and omits `raw`; the package then
+uses the bounded HTTPS transport and cache:
+
+```r
+live_candidates <- discover_au_fiscal_releases(source = "treasury")
+```
+
+The live call is shown for orientation only. CRAN vignette builds use the
+offline fixture above, so rendering remains deterministic while the live path
+stays visible to application authors.
+
+## Finance CKAN resource discovery
+
+The CKAN helper keeps all resource vintages in a successful `package_show`
+payload. This is important for overwrite-in-place workbooks, where the update
+timestamp is part of the release identity.
+
+```{r ckan-discovery}
+ckan_resources <- discover_finance_ckan_resources(
+  raw = example_raw("finance-ckan.json")
+)
+ckan_resources[, c(
+  "resource_id", "name", "format", "created", "last_modified",
+  "resource_url", "license"
+)]
+```
+
+The returned rows are metadata, not parsed observations. Select an admitted
+manifest row before calling a reader.
+
+## Curated manifest and coverage
+
+The manifest has one row per publication/resource vintage. Filter by source and
+release type to see what the installed package knows:
+
+```{r manifest}
+manifest <- list_au_fiscal_releases(source = "all")
+as.data.frame(table(manifest$source_id, manifest$release_type))
+```
+
+For Budget and MYEFO, use the coverage panels to select an exact table family,
+series, status, date range, unit, and accounting basis without fetching a
+document:
+
+```{r coverage}
+budget_series <- list_au_budget_series()
+budget_series[budget_series$series == "Total receipts",
+              c("release_id", "table_family", "series",
+                "actual_forecast", "start_date", "end_date",
+                "unit", "accounting_basis", "observation_source_url",
+                "observation_source_sha256")][1:6, ]
+```
+
+`list_au_pbo_historical_tables()` and
+`list_au_pbo_historical_series()` provide the corresponding table-oriented
+catalogue for the PBO workbook. `list_au_fiscal_search_controls()` is a cheaper
+projection for an application search panel and intentionally does not load
+series-level coverage.
+
+### Read the source terms at the right level
+
+The release manifest’s `license`, `terms_url`, and `attribution` describe the
+selected release/resource. The coverage rows above add an observation-level
+source URL and SHA-256. This distinction matters because some Budget and MYEFO
+table families use the PBO structured products
+[*Historical budget forecasts and measures*](https://www.pbo.gov.au/copyright-information)
+for normalisation while retaining the Treasury release identity. A PBO
+`observation_source_url` is subject to the PBO copyright notice and its CC
+BY-NC-ND 4.0 International caveat; the Treasury release terms do not license
+those PBO-derived observations. Keep both hashes and consult `inst/TERMS.md`
+before redistribution.
+
+## Source boundaries
+
+The admitted families include Treasury chart CSV/ZIP resources and curated
+Budget/MYEFO snapshot panels, Finance aggregate workbooks, the FBO history DOCX,
+and the PBO Historical Fiscal Data workbook. The package does not generally
+parse arbitrary PDF, DOCX, workbook, HTML, appropriation-table, or
+financial-statement-note content. Use discovery to record such URLs and the
+typed readers for admitted families; a URL can remain a documented candidate
+until a matching reader and schema contract are available.
+
+## Build a reproducible workflow
+
+Use `readfiscalau.Rmd` for the first offline read, and
+`provenance-and-cache.Rmd` for exact-byte replay. Before a source change is
+admitted, preserve its URL/hash/terms metadata, add a small fixture, and add a
+contract test that records the intended schema and failure behavior.

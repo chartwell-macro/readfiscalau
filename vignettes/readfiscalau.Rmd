@@ -1,0 +1,344 @@
+---
+title: "Getting started with readfiscalau"
+author: "Chartwell Macro"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting started with readfiscalau}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", error = FALSE)
+library(readfiscalau)
+source("_helpers.R")
+chart_chunk <- c(
+  "_chart-example.R",
+  file.path("vignettes", "_chart-example.R"),
+  file.path("..", "vignettes", "_chart-example.R")
+)
+chart_chunk <- chart_chunk[file.exists(chart_chunk)]
+if (length(chart_chunk) < 1L) {
+  stop(
+    "Chart chunk not found; cwd=", getwd(), "; candidates=",
+    paste(c("_chart-example.R", file.path("vignettes", "_chart-example.R"),
+            file.path("..", "vignettes", "_chart-example.R")), collapse="|")
+  )
+}
+read_chart_chunk <- knitr::read_chunk
+read_chart_chunk(chart_chunk[[1L]])
+```
+
+`readfiscalau` reads selected, schema-governed Australian Commonwealth fiscal
+publications. The shortest reliable workflow is:
+
+1. inspect the local manifest and lightweight search controls;
+2. choose a supported release/resource row;
+3. read it with the typed reader for its release type; and
+4. retain the provenance attribute with the returned tibble.
+
+This vignette uses packaged replay fixtures for the data read, so it does not
+need network access and does not depend on a changing government endpoint.
+
+## Sources and coverage
+
+The package uses publications from three Australian Government sources:
+
+| Publisher | Main workflow | Current admitted coverage |
+|:--|:--|:--|
+| [Australian Treasury](https://budget.gov.au/) | Budget and MYEFO vintage tables, FBO historical aggregates, and Budget archive discovery | Budget vintages 2000–01 to 2026–27; MYEFO vintages 2000–01 to 2025–26. The pinned FBO history contains annual actual aggregates from 1970–71 to 2024–25. The archive catalogue spans 1901–02 to 2026–27 and is discovery/preservation metadata, not chart-ready observations. |
+| [Department of Finance](https://www.finance.gov.au/publications/commonwealth-monthly-financial-statements) | Monthly financial statement aggregates and CKAN metadata | Archived statement PDFs begin in January 2000. The machine-readable aggregates used by the package begin in July 2000 and currently run through May 2026. Finance supplies July–May; Treasury FBO data can complete June. |
+| [Parliamentary Budget Office](https://www.pbo.gov.au/publications-and-data/data-and-tools/data-portal/historical-fiscal-data) | Structured forecast workbooks used for selected Budget/MYEFO observations, plus a separate table-oriented historical reader | Historical-table coverage is table-specific: Table 9 AGS debt starts in 1900–01; Table 6 cash receipts in 1901–02; Table 8 cash flow in 1953–54; Table 7 expenses in 1964–65; Tables 1 and 2 aggregates in 1970–71; other tables start later. Budget/MYEFO panel coverage is described below. |
+
+The ranges describe data surfaced by this package release, not every document
+held by each publisher.
+
+### Finance monthly statements
+
+Finance's archive includes monthly-statement PDFs from
+[January 2000](https://www.finance.gov.au/archive-link/australian-government-general-government-sector-monthly-financial-statements-january-2000),
+but the [machine-readable aggregates workbook](https://data.gov.au/data/en/dataset/australian-government-general-government-sector-monthly-financial-statements-tables-and-data/resource/1e1e039e-c54d-4c59-973b-7b15cde2ed63)
+used by the package begins in fiscal year 2000–01. Its first observation is
+July 2000, which is the starting point of
+`read_au_monthly_financial_history()`; the package does not parse the earlier
+2000 PDFs.
+
+Finance supplies July–May YTD observations. The reader derives monthly flows,
+keeps stocks as month-end levels, and can add June from a compatible annual FBO
+release. Cash measures such as receipts, payments, and cash balances remain
+separate from accrual measures such as revenue, expenses, and balance-sheet
+items. A material format and accounting boundary at 2008–09 remains explicit
+through `accounting_basis`, `accounting_framework`, source labels, and
+`schema_family`; historical values are not recast across that boundary.
+
+### Budget and MYEFO publication-vintage data
+
+The installed historical-table snapshot covers 22 economically and fiscally
+material table families across all 28 Budgets from 2000–01 to 2026–27 and all
+25 MYEFOs from 2000–01 to 2025–26. It is a static RDS built from official
+Treasury PDFs, so user queries are local and do not reparse a PDF. The selected
+families cover economic forecasts; headline cash/accrual and balance-sheet
+aggregates; detailed receipts and reconciliations; expenses and investment;
+debt and interest; and formal sector financial statements.
+
+```{r budget-myefo-family-overview}
+historical_families <- list_au_budget_myefo_families()
+historical_families[, c(
+  "family_label", "query_mode",
+  "budget_first_vintage", "myefo_first_vintage"
+)][1:8, ]
+```
+
+Use `list_au_budget_myefo_families()` for all 22 family-level coverage rows and
+`list_au_budget_myefo_series()` for series-specific periods, and
+`list_au_budget_myefo_series_profiles()` for exact non-duplicating application
+paths. Durable concepts
+have canonical IDs across duplicate source tables; variable reconciliation
+detail is retrieved as a complete table. Aggregate `Total` columns and source
+charts are not promoted to series. The dedicated
+[historical Budget and MYEFO tables](budget-myefo-table-history.html) article
+documents the complete map and examples.
+
+The existing curated high-level panels remain available without behavior
+changes. They surface selected table families from each publication:
+
+| Panel | Publication vintages | Selected table families | Observation envelope across all admitted series |
+|:--|:--|:--|:--|
+| Budget | 28 vintages, 2000–01 to 2026–27, including both 2022–23 Budgets | Budget aggregates; major economic parameters; domestic-economy forecasts; cash receipts; cash interest | Fiscal years 1998–99 to 2036–37 |
+| MYEFO | 25 vintages, 2000–01 to 2025–26; no 2022–23 MYEFO was issued | Budget aggregates; Budget-comparator aggregates; major economic parameters; domestic-economy forecasts; cash receipts; cash interest | Fiscal years 1998–99 to 2035–36 |
+
+These families cover fiscal balances, debt, aggregate receipts and payments;
+GDP, inflation, wages, labour-market parameters; detailed domestic-economy
+forecasts; individual receipt heads; and interest payments and receipts. MYEFO
+Budget-comparator rows keep the preceding Budget forecast alongside the MYEFO
+update.
+
+The envelopes include future periods forecast in each publication; every
+series and vintage has its own range. The panels retain Treasury tables for
+domestic-economy forecasts, cash receipts, cash interest, and some MYEFO
+aggregates and economic parameters. Selected normalized aggregate, comparator,
+and economic rows come from the PBO's structured
+[Historical budget forecasts and measures](https://www.pbo.gov.au/publications-and-data/data-and-tools/data-portal/historical-budget-forecasts-measures)
+workbooks: Table 1 (*Medium term projections*), Table 2 (*Budget estimates*),
+and Table 5 (*Economic forecasts*).
+
+Table numbering changes across publication years. Use the stable
+`table_family` to select content and `source_table` to identify the exact
+published table. Each row's `actual_forecast` distinguishes realized values
+from that vintage's projections, while `observation_source_url` and
+`observation_source_sha256` identify the upstream observation product even
+when the enclosing release remains a Treasury Budget or MYEFO.
+
+Start with `list_au_budget_series()` or `list_au_myefo_series()` to inspect the
+exact family, series, status, range, basis, unit, and source; then use
+`read_au_budget()` or `read_au_myefo()` for one publication vintage.
+`read_au_budget_history()` is a narrower cross-vintage reader for four audited
+cash-receipts/accrual-revenue contracts, with actuals and forecasts kept
+separate.
+
+## Retrieve and chart a time series
+
+This end-to-end example selects the pinned Treasury Budget 2024–25 release,
+validates its official Table 1 resource contract, filters the returned curated
+data to `Total receipts`, and charts the annual values in AUD billions.
+
+The manifest pins the selected resource hash, and the returned provenance
+records both the Table 1 CSV and Budget Paper 1 Table 5.7 observation sources.
+The source attribution is © Commonwealth of Australia; consult the
+[Treasury terms](https://budget.gov.au/legal-notices.htm#h1) before reusing the
+values. The visible code makes a bounded live request, so CRAN and documentation
+builds use the checked-in figure and remain deterministic and offline. Pass
+exact bytes through `raw` or an injected `fetcher` for an offline replay.
+
+```{r treasury-chart, eval=FALSE}
+```
+
+```{r treasury-chart-preview, echo=FALSE, out.width="100%", fig.alt="Line chart of annual Australian Government total receipts from the Treasury Budget 2024–25 curated cash-receipts series, sourced from Table 1 and Budget Paper 1 Table 5.7, covering 2005–06 to 2027–28 in AUD billions."}
+knitr::include_graphics("../man/figures/treasury-total-receipts.png")
+```
+
+Keep the full returned object and its `readfiscalau_provenance` attribute when
+an analysis needs exact source bytes, terms, retrieval metadata, or cache
+state. The chart does not imply Australian Government endorsement. The line
+includes both published actual and forecast observations; retain
+`actual_forecast` from the full result when that distinction matters.
+
+## Compare historical Budget forecast vintages
+
+The installed historical-table snapshot makes a cross-vintage chart local and
+deterministic. This example selects every fourth Budget from 2004–05 through
+2024–25, adds the latest 2026–27 Budget, and plots the underlying cash balance
+from the GGS Budget aggregates as a share of GDP. This consistent forecast unit
+is available in the admitted PDFs from 2004–05. The solid line adds the same
+measure's annual actuals from PBO Historical Fiscal Data Table 1 over the
+overlapping period; the selected Treasury Budget forecast paths remain dotted.
+
+Each dotted line is the path printed in one Budget, rather than a revised
+actual series. Both sources are installed snapshots, so no network request or
+runtime PDF parsing is involved.
+
+```{r budget-balance-vintages, fig.width=7, fig.height=4.5, out.width="100%", fig.alt="A solid line shows annual underlying cash balance actuals while dotted lines compare forecast paths published in seven selected Australian Budgets from 2004–05 to 2026–27, all measured as a percentage of GDP."}
+```
+
+The default reader keeps the canonical GGS aggregate occurrence for each
+Budget-period combination. Set `all_sources = TRUE` when an audit needs the
+same concept as printed in reconciliation, bridge, or formal-statement tables.
+
+## Inspect the local catalogue
+
+The manifest is local metadata. It distinguishes publication vintages and
+resource updates; a row is not merely a reporting period.
+
+```{r catalogue}
+controls <- list_au_fiscal_search_controls()
+head(controls)
+```
+
+```{r releases}
+releases <- list_au_fiscal_releases(
+  source = "treasury",
+  release_type = "budget"
+)
+releases[, c("release_id", "release_type", "release_date",
+             "release_status", "schema_family")][1:5, ]
+```
+
+The series catalogue functions provide a more exact local coverage view before
+any source document is read:
+
+```{r coverage}
+budget_coverage <- list_au_budget_series()
+budget_coverage[, c("release_id", "table_family", "series",
+                    "actual_forecast", "start_date", "end_date")][1:5, ]
+```
+
+The full historical-table catalogue uses a separate, table-preserving
+contract:
+
+```{r historical-table-coverage}
+table_coverage <- list_au_budget_myefo_tables(
+  publication = "budget",
+  release = "treasury-budget-2026-27-final"
+)
+table_coverage[, c(
+  "family_label", "query_mode", "source_table", "source_page"
+)][1:6, ]
+```
+
+## Read a small offline fixture
+
+The example fixture is a small Treasury chart-data-shaped CSV packaged under
+`inst/extdata/examples/`. The code starts from the packaged Budget CSV schema
+contract and replaces the release/resource identity with an explicitly
+synthetic fixture record before passing exact raw bytes to the real reader.
+The values are for a schema/replay example; they are not presented as a
+current official release.
+
+```{r read-fixture}
+# This block is standalone after installing and loading readfiscalau.
+library(readfiscalau)
+fixture_path <- system.file(
+  "extdata", "examples", "budget-current.csv", package = "readfiscalau"
+)
+stopifnot(nzchar(fixture_path), file.exists(fixture_path))
+fixture_raw <- readBin(
+  fixture_path, what = "raw", n = file.info(fixture_path)$size
+)
+fixture_release <- list_au_fiscal_releases(
+  source = "treasury", release_type = "budget"
+)
+fixture_release <- fixture_release[
+  fixture_release$schema_family == "treasury_chart_csv_v2", , drop = FALSE
+][1, , drop = FALSE]
+# Inherit the complete packaged 24-column contract, then identify the bytes as
+# a synthetic fixture instead of claiming they are the selected release.
+fixture_release[c(
+  "release_id", "release_date", "period_end", "fiscal_year",
+  "accounting_basis", "revision_semantics", "landing_url", "resource_id",
+  "resource_role", "resource_url", "resource_updated_at", "expected_sha256"
+)] <- list(
+  "example-budget-2026-27", as.Date("2026-05-12"), as.Date("2027-06-30"),
+  "2026-27", "mixed", "Small packaged chart-data-shaped example fixture.",
+  "https://budget.gov.au/content/downloads.htm", "example-budget-chart-data",
+  "example_chart_csv", "https://budget.gov.au/content/download/chart-data-final.csv",
+  "2026-05-12T07:36:13Z", NA_character_
+)
+data <- read_au_budget(
+  fixture_release,
+  raw = fixture_raw,
+  cache_dir = tempfile("readfiscalau-example-cache-")
+)
+data[, c("series", "fiscal_year", "period_end", "value", "unit",
+         "actual_forecast", "release_id")]
+```
+
+The result is a `readfiscalau_data` tibble. Release and source fields are
+included in the rows, and the provenance attribute retains the exact source
+bytes and cache metadata:
+
+```{r provenance}
+provenance <- attr(data, "readfiscalau_provenance")
+list(
+  class = class(data),
+  release_id = provenance$release$release_id,
+  raw_content_sha256 = provenance$raw_content_sha256,
+  cache_hit = provenance$cache_hit,
+  schema_version = provenance$schema_version,
+  terms_url = provenance$terms_url
+)
+```
+
+The fixture uses one Treasury-shaped source, so its release-level terms and
+observation source coincide. In curated Budget/MYEFO panels they can differ:
+`license`, `terms_url`, `attribution`, and `raw_content_sha256` describe the
+selected release/resource, while the coverage rows
+`observation_source_url` and `observation_source_sha256` identify the upstream
+product for the particular table/series/status. A PBO URL means the PBO
+CC BY-NC-ND 4.0 caveat applies to those observations; Treasury release terms
+do not license PBO-derived observations.
+
+When a chart-data ZIP contains more than one CSV table, select the member
+explicitly. The packaged ZIP fixture exercises that branch without a network
+call:
+
+```{r zip-table}
+zip_release <- example_budget_release()
+zip_release$resource_url <-
+  "https://budget.gov.au/content/download/chart-data-final.zip"
+zip_release$resource_role <- "example_chart_zip"
+zip_release$media_type <- "application/zip"
+zip_release$schema_family <- "treasury_chart_zip_csv_v2"
+zip_data <- read_au_budget(
+  zip_release,
+  raw = example_raw("budget-chart-archive.zip"),
+  table_id = "Table 1",
+  cache_dir = tempfile("readfiscalau-zip-cache-")
+)
+c(
+  rows = nrow(zip_data),
+  archive_member = attr(zip_data, "readfiscalau_provenance")$archive_member$name
+)
+```
+
+For a live read, pass a release ID from `list_au_fiscal_releases()` to the
+matching typed reader and omit `raw`. That call uses HTTPS, validates the
+selected source contract and expected hash, and writes to the bounded user
+cache. It is intentionally not executed in this vignette.
+
+```r
+live_budget <- read_au_budget(releases$release_id[[1]])
+```
+
+## Where to go next
+
+- Use `release-catalogues.Rmd` to separate discovery candidates from the
+  curated manifest and inspect Finance CKAN resource vintages.
+- Use `provenance-and-cache.Rmd` to replay bytes offline and inspect cache-hit
+  behavior.
+- Use `read_au_budget_history()` for actual/forecast vintage comparisons and
+  `read_au_monthly_financial_history()` for Finance monthly/YTD history.
+- Use `budget-myefo-table-history.Rmd` for the 22-family static PDF-table
+  snapshot, canonical series deduplication, and complete-table retrieval.
+- Use `budget-archive.Rmd` before running any durable Budget-document archive
+  operation.
+- Use `troubleshooting.Rmd` for typed conditions and source/schema failures.

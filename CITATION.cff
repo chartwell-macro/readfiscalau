@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use readfiscalau in your work, please cite it as follows."
+title: "readfiscalau: Versioned Australian Commonwealth Fiscal Data and Documents"
+version: "0.1.4"
+authors:
+  - family-names: "Macro"
+    given-names: "Chartwell"
+repository-code: "https://github.com/chartwell-macro/readfiscalau"
+url: "https://chartwell-macro.github.io/readfiscalau/"
+license: "MIT"
+keywords:
+  - "Australia"
+  - "fiscal data"
+  - "reproducible research"

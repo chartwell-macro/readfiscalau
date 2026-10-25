@@ -1,0 +1,214 @@
+---
+title: "Historical Budget and MYEFO tables"
+author: "Chartwell Macro"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Historical Budget and MYEFO tables}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", error = FALSE)
+library(readfiscalau)
+```
+
+The historical-table snapshot makes persistent economic forecasts, fiscal
+projections, reconciliations, debt and interest tables, and formal financial
+statements available without reparsing PDFs during a user query. It is a
+static RDS installed with the package and built from 53 official Treasury
+publications:
+
+- 28 Budgets from 2000–01 through 2026–27, including the March and October
+  2022–23 Budgets; and
+- 25 MYEFOs from 2000–01 through 2025–26. No 2022–23 MYEFO was issued.
+
+Values reproduce the cells printed in the named publication vintage. They are
+not silently revised into a latest-actual series. Every table retains its
+published title, page, official URL, and PDF SHA-256.
+
+## What is included
+
+The catalogue is the source of truth for family-level coverage. `query_mode`
+has three meanings:
+
+- `series_and_table`: durable dated rows are queryable as canonical series,
+  and the complete parsed table is also available;
+- `hybrid`: durable headline rows are series while variable reconciliation
+  detail remains available through the complete-table reader; and
+- `table_only`: the complete table is the public contract, without promising
+  stable component-row identities.
+
+```{r family-coverage}
+families <- list_au_budget_myefo_families()
+knitr::kable(families[, c(
+  "family_label", "query_mode",
+  "budget_first_vintage", "budget_last_vintage", "budget_release_count",
+  "myefo_first_vintage", "myefo_last_vintage", "myefo_release_count"
+)])
+```
+
+These are table-discovery dates, not universal series envelopes. A family may
+contain earlier actual periods and later forecasts; individual rows can begin
+later, and missing publications or material presentation changes remain
+visible in the counts. Start with `list_au_budget_myefo_series()` when raw
+source-cell coverage matters. Use `list_au_budget_myefo_actual_histories()`
+for one package-constructed actual path across publications, and
+`list_au_budget_myefo_series_profiles()` for exact release-specific forecast
+paths. Their direct readers return chart-ready series without application-side
+assembly.
+
+The selected families focus on:
+
+- major economic parameters, international GDP forecasts, and detailed
+  domestic forecasts;
+- GGS Budget, accrual and balance-sheet aggregates, underlying/headline cash
+  balances, fiscal-balance reconciliations, and formal sector statements;
+- detailed cash receipts, tax-receipt parameters, and cash/accrual
+  reconciliations;
+- expense estimates, function/sub-function expenses, and net capital
+  investment;
+- forecast AGS, net debt, and cash/accrual interest.
+
+Source charts, department-specific appendices, appropriation detail, and the
+many program tables at the ends of Budget documents are outside this snapshot.
+
+## Query a durable row across publications
+
+One economic or fiscal concept has one canonical `series_id`, even if it is
+printed in several tables. The example below reads the preferred underlying
+cash-balance occurrence from the 2026–27 Budget bridge table.
+
+```{r canonical-series}
+ucb <- read_au_budget_myefo_series(
+  "underlying-cash-balance",
+  release = "treasury-budget-2026-27-final",
+  unit = "AUD million"
+)
+ucb[, c(
+  "budget_vintage", "fiscal_year", "value", "unit",
+  "actual_forecast", "profile_type", "source_table"
+)]
+```
+
+`all_sources = FALSE` is the default. It keeps one preferred occurrence per
+release, period, unit, accounting basis, and publication profile. Use
+`all_sources = TRUE` to inspect the same canonical concept wherever it appears
+in aggregate, reconciliation, bridge, or formal-statement tables.
+
+```{r duplicate-sources}
+ucb_sources <- read_au_budget_myefo_series(
+  "underlying-cash-balance",
+  release = "treasury-budget-2026-27-final",
+  unit = "AUD million",
+  all_sources = TRUE
+)
+unique(ucb_sources[, c("series_id", "family_id", "source_table")])
+```
+
+This prevents a Table 3.3 underlying cash balance and a Table 3.5 underlying
+cash balance from becoming separate user-facing series. Budget and MYEFO
+profiles are not deduplicated into one forecast: `profile_type` keeps a prior
+Budget estimate, an updated MYEFO estimate, and actual/outcome columns distinct.
+
+## Query every durable row from a detailed forecast table
+
+The detailed domestic-economy family exposes all durable rows rather than only
+a small headline subset. In the 2026–27 Budget, this is 23 rows, including GDP,
+consumption, investment, demand, trade, prices, wages, labour-market measures,
+the current account, and net overseas migration.
+
+```{r domestic-table}
+domestic <- read_au_budget_myefo_table(
+  "treasury-budget-2026-27-final",
+  "domestic_economy_detailed_forecasts"
+)
+domestic_series <- unique(domestic[
+  domestic$series_eligible,
+  c("series_id", "series", "row_path", "unit")
+])
+nrow(domestic_series)
+head(domestic_series, 8)
+```
+
+Select one row with its canonical ID:
+
+```{r mining-investment}
+mining <- domestic[
+  domestic$series_id == "mining-investment" & domestic$series_eligible,
+  c("fiscal_year", "period_end", "value", "unit", "actual_forecast")
+]
+mining
+```
+
+The detailed cash-receipts family uses the same model. All 37 categories in
+the 2026–27 Budget Table 5.7 are queryable, and `row_path` retains headings
+such as the excise-and-customs hierarchy.
+
+```{r receipts-table}
+receipts <- read_au_budget_myefo_table(
+  "treasury-budget-2026-27-final",
+  "detailed_cash_receipts"
+)
+receipt_series <- unique(receipts[
+  receipts$series_eligible,
+  c("series_id", "series", "row_path", "unit")
+])
+nrow(receipt_series)
+receipt_series[receipt_series$series_id %in% c(
+  "company-tax", "goods-and-services-tax", "petrol", "total-receipts"
+), ]
+```
+
+## Read a complete variable table
+
+Reconciliation components often change with policy decisions, asset sales,
+programs, and presentation. `read_au_budget_myefo_table()` therefore returns
+every parsed numeric cell, including non-time `Total` columns and rows that are
+not series-queryable.
+
+```{r full-bridge}
+bridge <- read_au_budget_myefo_table(
+  "treasury-budget-2026-27-final",
+  "underlying_to_headline_cash_bridge"
+)
+bridge[1:8, c(
+  "row_path", "column_label", "value", "unit", "series_eligible"
+)]
+```
+
+`format = "text"` returns the layout-preserving extracted text for each
+physical table part. This is useful for footnotes and variable row context.
+The expense-estimate reconciliation (often Table 3.13 in recent Budgets) is
+deliberately table-only.
+
+```{r table-only}
+expense <- read_au_budget_myefo_table(
+  "treasury-budget-2026-27-final",
+  "expense_estimates_reconciliation",
+  format = "text"
+)
+expense[, c(
+  "budget_vintage", "source_table", "source_page",
+  "source_url", "source_sha256"
+)]
+```
+
+## Interpretation and provenance
+
+The parser normalizes printed numbers—including historical mixed fractions—to
+numeric `value`, but retains `value_text`, `raw_line`, and complete `raw_text`.
+`unit_multiplier` converts the displayed unit to base units when required.
+Non-time totals have no `period_end` and are never canonical series.
+
+Accounting bases, government-sector scopes, row definitions, and forecast
+horizons can change between vintages. Use `accounting_basis`, `consolidation`,
+`actual_forecast`, `profile_type`, `source_table`, and `source_page` when making
+comparisons; inspect the source footnotes for material definition changes.
+The reader does not claim a continuous accounting concept merely because a
+canonical label persists.
+
+The installed reader performs no network request, PDF parsing, cache write, or
+working-directory write. A maintainer rebuild requires the frozen official PDF
+inventory and layout-preserving text extraction; the generated RDS records the
+53 source URLs and PDF hashes used for verification.

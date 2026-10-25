@@ -1,0 +1,93 @@
+#' Versioned Australian Commonwealth fiscal release client
+#'
+#' `readfiscalau` discovers selected Australian Treasury and Department of
+#' Finance release links, validates them against an explicit publication-vintage
+#' manifest, and parses admitted chart CSV/ZIP, workbook and document schemas.
+#' It also exposes completed-year PBO historical fiscal data and separate
+#' tooling for discovering and preserving official Budget documents. A static
+#' historical snapshot preserves 22 selected Budget and MYEFO table families
+#' across the 53 official publications from 2000-01 onward, with canonical
+#' durable series and complete-table access. The package is source-specific:
+#' it is not a general PDF, workbook or HTML table extractor, and a discovery
+#' candidate is not automatically a parseable release.
+#'
+#' The primary outputs are tibbles with classes such as `readfiscalau_data`,
+#' `readfiscalau_history` and `readfiscalau_monthly_history`.  Parsed rows keep
+#' release/vintage identity, fiscal period, actual/forecast status, accounting
+#' basis, consolidation, units and source terms.  Reader outputs carry a
+#' `readfiscalau_provenance` (or history-specific) attribute containing the
+#' exact source URL and SHA-256, retrieval/cache metadata, parser and contract
+#' revisions, schema family and dependency versions.  The registered print
+#' methods add a concise provenance line before ordinary tibble output.
+#'
+#' Readers use HTTPS-only, bounded transport with expected media/hash checks,
+#' atomic hash-addressed cache publication and bounded cache pruning.  A
+#' caller can supply exact `raw` bytes or an injected `fetcher` for deterministic
+#' offline replay.  The default cache is under `tools::R_user_dir()`; the
+#' Budget archive is a separate append-only user-data directory and can be
+#' configured with `READFISCALAU_BUDGET_ARCHIVE_DIR`.  No startup download,
+#' credential handling or global/home-directory write is performed by the
+#' package.  Network failures, changed resources, unsupported schemas and
+#' incomplete official links fail with typed `readfiscalau_*` conditions.
+#'
+#' Finance monthly history treats July--May as the monthly boundary; June is
+#' completed only from an admitted FBO/CFS annual outcome.  Treasury percentage
+#' of GDP tables remain separate from dollar tables, pre-2007 AAS concepts are
+#' not recast as GFS, and published gaps remain visible as `NA` or explicit
+#' archive gap records.  Consult the individual reference topics and the
+#' packaged source terms in `inst/TERMS.md` before redistributing official
+#' material.
+#'
+#' @section Supported sources:
+#' Treasury Budget and MYEFO chart/vintage resources; Department of Finance
+#' monthly financial statement and CFS resources; the 2024--25 FBO historical
+#' aggregate DOCX; and the PBO Historical Fiscal Data workbook.  The package
+#' ships compact curated observation panels and small replay fixtures, not the
+#' multi-gigabyte Budget document archive.
+#'
+#' @section Package license:
+#' Package-authored code and documentation are released under the MIT terms in
+#' `LICENSE`, with Chartwell Macro identified as the package author, maintainer, and
+#' copyright holder.  This package license does not relicense upstream
+#' government data, captured official pages, source-derived observations,
+#' logos, or other third-party material; consult `inst/TERMS.md` and
+#' `inst/COPYRIGHTS` for the applicable source terms and attribution.
+#'
+#' @section See also:
+#' [list_au_fiscal_releases()], [discover_au_fiscal_releases()],
+#' [read_au_fiscal_release()], [list_au_budget_myefo_families()],
+#' [list_au_budget_myefo_series_profiles()],
+#' [read_au_budget_myefo_series()], [read_au_budget_myefo_table()],
+#' [read_au_budget_history()],
+#' [read_au_monthly_financial_history()], and
+#' [read_au_budget_archive_catalogue()].
+#'
+#' @section Source terms:
+#' `terms_url`, `license` and `attribution` are release-level metadata for the
+#' enclosing publication resource; they are copied into parsed rows and
+#' provenance, but do not by themselves relicense every observation.  For
+#' curated Budget and MYEFO snapshots, the provenance
+#' `archive_member$observation_sources` records source URL/SHA-256 pairs used
+#' for the observations.  When those sources are PBO products, the separate
+#' PBO terms continue to apply even though the enclosing release metadata is a
+#' Treasury row.  Treasury rows identify the Commonwealth's CC BY 4.0 notice;
+#' Finance rows distinguish data.gov.au CC BY 3.0 from Finance website terms;
+#' PBO rows retain the publisher's CC BY-NC-ND 4.0 notice.  These strings are
+#' metadata, not legal advice.
+#'
+#' Examples in the reference documentation use small synthetic fixtures.  Their
+#' manifest terms strings are present to satisfy the parser's required source
+#' contract and are illustrative only; they do not claim that generated fixture
+#' bytes are official publisher material or carry the publisher's terms.
+#'
+#' @author Chartwell Macro
+#'
+#' @examples
+#' releases <- list_au_fiscal_releases()
+#' releases[1:3, c(
+#'   "source_id", "release_type", "fiscal_year", "schema_family"
+#' )]
+#'
+#' @keywords internal
+#' @name readfiscalau-package
+"_PACKAGE"

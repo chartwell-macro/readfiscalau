@@ -1,0 +1,86 @@
+url: https://chartwell-macro.github.io/readfiscalau/
+
+template:
+  bootstrap: 5
+
+home:
+  title: "readfiscalau: Australian Commonwealth fiscal release data"
+  description: >
+    Discover and read selected Australian Treasury, Department of Finance, and
+    Parliamentary Budget Office fiscal releases, including a static historical
+    Budget/MYEFO table snapshot, with versioned provenance and bounded,
+    hash-addressed caching for live resources.
+  links:
+    - text: Contribute
+      href: https://github.com/chartwell-macro/readfiscalau/pulls
+
+navbar:
+  structure:
+    left: [intro, reference, articles, news]
+    right: [github]
+  components:
+    github:
+      icon: fab fa-github
+      href: https://github.com/chartwell-macro/readfiscalau
+      aria-label: GitHub repository
+
+reference:
+  - title: Release catalogues and discovery
+    desc: Find pinned publication vintages and inspect official candidates.
+    contents:
+      - list_au_fiscal_releases
+      - list_au_fiscal_search_controls
+      - list_au_budget_series
+      - list_au_myefo_series
+      - list_au_pbo_historical_tables
+      - list_au_pbo_historical_series
+      - discover_au_fiscal_releases
+      - discover_finance_ckan_resources
+  - title: Read fiscal release data
+    desc: Parse supported Treasury, Finance, and PBO release contracts.
+    contents:
+      - read_au_fiscal_release
+      - read_au_budget_history
+      - read_au_monthly_financial_history
+      - read_au_pbo_historical
+      - print.readfiscalau_data
+  - title: Historical Budget and MYEFO tables
+    desc: Browse the installed 53-publication table snapshot, query canonical rows, or recover complete tables.
+    contents:
+      - list_au_budget_myefo_families
+      - list_au_budget_myefo_tables
+      - list_au_budget_myefo_series
+      - list_au_budget_myefo_series_profiles
+      - read_au_budget_myefo_series
+      - read_au_budget_myefo_table
+  - title: Budget document archive
+    desc: Discover, preserve, list, and validate official Budget documents.
+    contents:
+      - read_au_budget_archive_catalogue
+      - list_au_budget_archive_candidates
+      - discover_au_budget_archive_index
+      - crawl_au_budget_archive
+      - archive_au_budget_documents
+      - list_au_budget_archive
+      - validate_au_budget_archive
+      - validate_au_budget_archive_inventory
+      - readfiscalau_default_archive_dir
+  - title: Cache and reproducibility
+    contents:
+      - readfiscalau_default_cache
+      - readfiscalau_cache_prune
+
+articles:
+  - title: Get started
+    contents:
+      - readfiscalau
+  - title: Workflows
+    navbar: Workflows
+    contents:
+      - release-catalogues
+      - budget-myefo-table-history
+      - provenance-and-cache
+      - budget-archive
+  - title: Troubleshooting
+    contents:
+      - troubleshooting

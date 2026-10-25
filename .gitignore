@@ -1,0 +1,29 @@
+# R session and project state
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+
+# Local package checks and source archives
+.Rcheck/
+readfiscalau.Rcheck/
+readfiscalau_*.tar.gz
+
+# Generated pkgdown output is built and uploaded by CI, not committed.
+docs/
+README.html
+
+# Local dependency and coverage artifacts
+.github/pkg.lock
+cobertura.xml
+
+# Common local render/build products
+site_libs/
+*_files/
+.quarto/
+tmp/
+
+# Local editor and operating-system files
+.DS_Store
+*.swp
+*.swo

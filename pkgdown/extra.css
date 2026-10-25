@@ -1,0 +1,6 @@
+/* Keep the collapsed table-of-contents sidebar inside the phone viewport. */
+@media (max-width: 767.98px) {
+  .row > aside.col-md-3 {
+    margin-inline: 0;
+  }
+}

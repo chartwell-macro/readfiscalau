@@ -1,0 +1,58 @@
+# Build the package site for review. GitHub Pages is not assumed to be
+# configured in this repository, so this workflow publishes a short-lived
+# downloadable artifact and does not request contents: write.
+# https://github.com/r-lib/actions/tree/v2/examples
+name: pkgdown
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - 'codex/**'
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pkgdown:
+    name: Build pkgdown site
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    concurrency:
+      group: pkgdown-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::pkgdown, local::.
+          needs: website
+
+      - name: Check pkgdown configuration
+        run: pkgdown::check_pkgdown()
+        shell: Rscript {0}
+
+      - name: Build site
+        run: pkgdown::build_site_github_pages(new_process = FALSE, install = TRUE)
+        shell: Rscript {0}
+
+      - name: Upload site artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: pkgdown-site
+          path: docs
+          if-no-files-found: warn
+          retention-days: 14
