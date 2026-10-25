@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-07-28 10:28:57 UTC",
+  "scope": {
+    "first_vintage": "1901-02",
+    "current_vintage": "2026-27",
+    "official_root": "https://archive.budget.gov.au/index.htm",
+    "current_root": "https://budget.gov.au/content/downloads.htm"
+  },
+  "counts": {
+    "candidates": 1269,
+    "available": 1260,
+    "unavailable": 9,
+    "indexes": 70,
+    "explicit_gaps": 18,
+    "budget_vintages": 121
+  },
+  "advertised_available_bytes": 2500638328,
+  "bundled_index_bytes": 985945
+}

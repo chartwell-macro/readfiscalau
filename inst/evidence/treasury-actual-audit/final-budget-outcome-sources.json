@@ -1,0 +1,177 @@
+[
+  {
+    "fy": "2000-01",
+    "url": "https://archive.budget.gov.au/2000-01/fbo/fbo.pdf",
+    "index_url": "https://archive.budget.gov.au/2000-01/index.htm",
+    "sha256": "d2a2bcf052f6610142cf71b9cc938f5ffd8402fd9fe7cb699d836ef8b4f3cc50",
+    "bytes": 800886
+  },
+  {
+    "fy": "2001-02",
+    "url": "https://archive.budget.gov.au/2001-02/final_outcome/fbo.pdf",
+    "index_url": "https://archive.budget.gov.au/2001-02/index.htm",
+    "sha256": "6bad8123d7c8232c46599e5a8f811d19765fbb61d719e1ae2e14f5a997699a2f",
+    "bytes": 1096321
+  },
+  {
+    "fy": "2002-03",
+    "url": "https://archive.budget.gov.au/2002-03/fbo/fbo.pdf",
+    "index_url": "https://archive.budget.gov.au/2002-03/index.htm",
+    "sha256": "aa51d852f1826d192cc0ed0595637cdc6ad27a1467f032550a630b3f017455e0",
+    "bytes": 905989
+  },
+  {
+    "fy": "2003-04",
+    "url": "https://archive.budget.gov.au/2003-04/fbo/FBO_2003_04.pdf",
+    "index_url": "https://archive.budget.gov.au/2003-04/index.htm",
+    "sha256": "3a586cd16715235d0791587db8f5d14b9898e16f68a3c28aeeb9749bd2ec9712",
+    "bytes": 752936
+  },
+  {
+    "fy": "2004-05",
+    "url": "https://archive.budget.gov.au/2004-05/fbo/fbo_2004-05.pdf",
+    "index_url": "https://archive.budget.gov.au/2004-05/index.htm",
+    "sha256": "6b894a5bcc6a0a23705d7c63a47f9152aa5636da32919c0877c23fcebf6187ae",
+    "bytes": 812906
+  },
+  {
+    "fy": "2005-06",
+    "url": "https://archive.budget.gov.au/2005-06/fbo/fbo.pdf",
+    "index_url": "https://archive.budget.gov.au/2005-06/index.htm",
+    "sha256": "edf9ab7b167ada1dcf1183aaf4847409260a961564f8929234d7c621565f318e",
+    "bytes": 676005
+  },
+  {
+    "fy": "2006-07",
+    "url": "https://archive.budget.gov.au/2006-07/fbo/FBO_2006-07.pdf",
+    "index_url": "https://archive.budget.gov.au/2006-07/index.htm",
+    "sha256": "fdd883ad4cb51f41b90385638b1ee2c3d0bc59a7bac219a80b40a49f77b80ded",
+    "bytes": 569899
+  },
+  {
+    "fy": "2007-08",
+    "url": "https://archive.budget.gov.au/2007-08/fbo/FBO_2007_08.pdf",
+    "index_url": "https://archive.budget.gov.au/2007-08/index.htm",
+    "sha256": "7f4a56beeb88785fa60204bc3c0630bec875ed57e3acee4a23f31f9fa8632593",
+    "bytes": 810483
+  },
+  {
+    "fy": "2008-09",
+    "url": "https://archive.budget.gov.au/2008-09/fbo/2008_09_FBO.pdf",
+    "index_url": "https://archive.budget.gov.au/2008-09/index.htm",
+    "sha256": "b798fa9c4e362b3bc67af73cfe359b957d37cc2556c559a8bdf84664bca49e2e",
+    "bytes": 582313
+  },
+  {
+    "fy": "2009-10",
+    "url": "https://archive.budget.gov.au/2009-10/fbo/2009_10_FBO.pdf",
+    "index_url": "https://archive.budget.gov.au/2009-10/index.htm",
+    "sha256": "95e8bf64e6fa854b133dcf0c3b23f955a64b9787ae0c0de7f68d7abce8f3aa42",
+    "bytes": 605726
+  },
+  {
+    "fy": "2010-11",
+    "url": "https://archive.budget.gov.au/2010-11/fbo/fbo_2010-11_consolidated.pdf",
+    "index_url": "https://archive.budget.gov.au/2010-11/index.htm",
+    "sha256": "58fcbc44d0dce448fa8ddbae696183054c674a0cdc4014c0499f8d04a654c969",
+    "bytes": 654342
+  },
+  {
+    "fy": "2011-12",
+    "url": "https://archive.budget.gov.au/2011-12/fbo/FBO_2011-12_Consolidated.pdf",
+    "index_url": "https://archive.budget.gov.au/2011-12/index.htm",
+    "sha256": "7032e513be076411e1e878e73e0ae08c2c498d89d4a9e103dd7c8a41fe14ce15",
+    "bytes": 684646
+  },
+  {
+    "fy": "2012-13",
+    "url": "https://archive.budget.gov.au/2012-13/fbo/2012-13_FBO_Consolidated.pdf",
+    "index_url": "https://archive.budget.gov.au/2012-13/index.htm",
+    "sha256": "d0e03a6314f217fc023dfb56b3215ea103bb88d060961915b0dfc81b8102fa4a",
+    "bytes": 1896179
+  },
+  {
+    "fy": "2013-14",
+    "url": "https://archive.budget.gov.au/2013-14/fbo/FBO_Consolidated.pdf",
+    "index_url": "https://archive.budget.gov.au/2013-14/index.htm",
+    "sha256": "6ea8f5bea8de1839e1ec5d0028e9d2f8a18924291ebb824bb4ddfd4136a38aa9",
+    "bytes": 2010820
+  },
+  {
+    "fy": "2014-15",
+    "url": "https://archive.budget.gov.au/2014-15/fbo/FBO-2014-15-Consolidated.pdf",
+    "index_url": "https://archive.budget.gov.au/2014-15/index.htm",
+    "sha256": "4585676aa6da00cf1a9d6ecddcdb6237d93e78420a7f8276123f50da66a76ada",
+    "bytes": 1617280
+  },
+  {
+    "fy": "2015-16",
+    "url": "https://archive.budget.gov.au/2015-16/fbo/FBO-2015-16-Consolidated.pdf.pdf",
+    "index_url": "https://archive.budget.gov.au/2015-16/index.htm",
+    "sha256": "1b2f29569829fbd0cc7197ec9698dee98d03deffeb7c1de5f69af4998832e9cb",
+    "bytes": 1648567
+  },
+  {
+    "fy": "2016-17",
+    "url": "https://archive.budget.gov.au/2016-17/fbo/FBO-2016-17.pdf",
+    "index_url": "https://archive.budget.gov.au/2016-17/index.htm",
+    "sha256": "72e671cc61183f217f9d56fe38bf62d92ba2825f768ec8037d847b8899bbf25c",
+    "bytes": 799634
+  },
+  {
+    "fy": "2017-18",
+    "url": "https://archive.budget.gov.au/2017-18/fbo/FBO_2017-18_Combined.pdf",
+    "index_url": "https://archive.budget.gov.au/2017-18/index.htm",
+    "sha256": "85679d04f0ab5288bcde009f5b9108f0e074ffad0841b2eb2a462c23394c696b",
+    "bytes": 679659
+  },
+  {
+    "fy": "2018-19",
+    "url": "https://archive.budget.gov.au/2018-19/fbo/FBO_2018-19_web.pdf",
+    "index_url": "https://archive.budget.gov.au/2019-20/index.htm",
+    "sha256": "5cf97e4ee3fd3d386e44d11e460ef56474c30a075ccd438665150dd593a0dc7e",
+    "bytes": 1118708
+  },
+  {
+    "fy": "2019-20",
+    "url": "https://archive.budget.gov.au/2019-20/fbo/download/FBO-2019-20.pdf",
+    "index_url": "https://archive.budget.gov.au/2019-20/index.htm",
+    "sha256": "a68065c13b80d1854fe0bacfdd531f748d0d4ecec119023df108620a9ee8b765",
+    "bytes": 4358867
+  },
+  {
+    "fy": "2020-21",
+    "url": "https://archive.budget.gov.au/2020-21/fbo/download/fbo_2020-21.pdf",
+    "index_url": "https://archive.budget.gov.au/2020-21/index.htm",
+    "sha256": "ddbd253e7a7e8b37a7d9817780fd956abdf293183f21ac3de0f0e70d1c243ae7",
+    "bytes": 3001848
+  },
+  {
+    "fy": "2021-22",
+    "url": "https://archive.budget.gov.au/2021-22/fbo/download/fbo_2021-22.pdf",
+    "index_url": "https://archive.budget.gov.au/2021-22/index.htm",
+    "sha256": "a28bb388bed8d8804d4394fe92d1ae0676b2e469d398d9f979cdc61d7f4ed4eb",
+    "bytes": 3152294
+  },
+  {
+    "fy": "2022-23",
+    "url": "https://archive.budget.gov.au/2022-23-october/fbo/download/fbo-2022-23.pdf",
+    "index_url": "https://archive.budget.gov.au/2022-23-october/index.htm",
+    "sha256": "a7250a7a85989bf944cbbcf9054112ef2779e572728b3c3dcf7da6ff572634a0",
+    "bytes": 2718430
+  },
+  {
+    "fy": "2023-24",
+    "url": "https://archive.budget.gov.au/2023-24/fbo/download/00_fbo_2023-24.pdf",
+    "index_url": "https://archive.budget.gov.au/2023-24/index.htm",
+    "sha256": "bed6c2e59b62aa1af8fcb2dbc213a78c8834dd03d86f7f3a330afb69a444522b",
+    "bytes": 3405952
+  },
+  {
+    "fy": "2024-25",
+    "url": "https://archive.budget.gov.au/2024-25/fbo/download/00_fbo_2024-25.pdf",
+    "index_url": "https://archive.budget.gov.au/2024-25/index.htm",
+    "sha256": "55f60f07a6431f1008f1ad8abde2f48805bd126a78a9a4495d750a0d07c44e56",
+    "bytes": 3319811
+  }
+]

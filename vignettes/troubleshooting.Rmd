@@ -1,0 +1,86 @@
+---
+title: "Troubleshooting and reproducibility"
+author: "Chartwell Macro"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Troubleshooting and reproducibility}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", error = FALSE)
+library(readfiscalau)
+source("_helpers.R")
+```
+
+`readfiscalau` validates source boundaries so that an application can rely on
+typed, contract-checked results. When a publisher changes, truncates, or
+semantically revises a resource, the package reports a typed condition with
+the evidence needed to investigate it instead of silently returning
+misleading values.
+
+## Reproduce a failure offline
+
+Typed readers reject a manifest row for the wrong release family before parsing
+its bytes. This is deterministic and uses the packaged raw fixture:
+
+```{r release-type}
+wrong_type <- tryCatch(
+  read_au_myefo(
+    example_budget_release(),
+    raw = example_raw("budget-current.csv"),
+    cache_dir = tempfile("readfiscalau-error-cache-")
+  ),
+  error = function(e) e
+)
+c(
+  class = paste(class(wrong_type), collapse = ", "),
+  message = conditionMessage(wrong_type)
+)
+```
+
+The `raw` argument is useful when filing a reproducible issue: retain the
+exact bytes, manifest row, package version/commit, and the typed condition.
+The `fetcher` argument provides the same seam when a test needs to emulate a
+transport response with status, media type, final URL, and retrieval time.
+
+## Common conditions and next actions
+
+| Condition | Meaning and next action |
+|:--|:--|
+| `release_type` | The selected row does not match the typed reader. Choose the corresponding reader. |
+| `table_required` | A chart-data ZIP has multiple CSV members. Supply `table_id`. |
+| `source_hash` | The bytes differ from the manifest hash. Inspect the resource/update and do not coerce the response. |
+| `truncated`, `http`, `unsupported_media`, `too_large` | Transport or payload validation failed. Check the HTTPS endpoint, response status, media type, and byte limit; retry only when appropriate. |
+| `schema`, `duplicate_observation` | Periods, units, labels, or facts violate an admitted schema. Treat this as source drift and report it. |
+| `june_is_annual` | June must come from FBO or CFS; Finance monthly statements are July–May. |
+| `history_contract`, `history_series` | The selected history table/series or release does not satisfy the canonical history contract. Inspect the local coverage catalogue. |
+| Archive capacity/lock/gap conditions | Review the durable archive ledger, free space, and explicit gaps before resuming. |
+
+## A short diagnostic workflow
+
+1. Start with local metadata calls: `list_au_fiscal_releases()`, the relevant
+   coverage function, or `read_au_budget_archive_catalogue()`.
+2. Confirm that release type, period, actual/forecast status, unit, accounting
+   basis, and source URL match the intended workflow.
+3. Use a temporary `cache_dir` and `raw`/`fetcher` replay to isolate a
+   transport-related issue.
+4. Inspect `attr(result, "readfiscalau_provenance")` before discarding a
+   result. Its hash, source URL, cache namespace, parser revision, and terms
+   provide the evidence needed to reproduce it.
+5. When a pinned source changes or an unsupported schema appears, report the
+   exact resource URL and typed condition so the contract can be reviewed.
+
+## Offline and live paths
+
+The package ships deterministic fixtures for documentation and tests. The
+README and vignettes use them to exercise real parser/discovery code without a
+live endpoint. Live calls remain explicit and use credential-free HTTPS; a
+publisher outage or resource change is surfaced as a typed condition for the
+caller to handle. Installation and package loading do not download source
+data.
+
+For terms and attribution, read `inst/TERMS.md` and the source-level notice
+recorded in each manifest row. A cached or archived byte is not automatically
+licensed for redistribution.

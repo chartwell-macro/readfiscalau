@@ -1,0 +1,72 @@
+# Copyright and source-material map
+
+This file records the copyright and source-term facts visible in the package
+metadata and release manifest. It is not a legal opinion and does not add a
+license to material where the publisher has not stated one.
+
+## Package-authored material
+
+The package declares `MIT + file LICENSE` in `DESCRIPTION`. The `LICENSE`
+file and `DESCRIPTION` identify Chartwell Macro as the package-authored material's
+copyright holder, author, and maintainer. This ownership statement applies
+only to material authored for this package; it does not transfer or expand
+rights in the upstream publications, source data, captured pages, logos, or
+other third-party material listed below.
+
+The package-authored R sources, roxygen documentation, README/NEWS text,
+development tools, and deterministic fixture-generator scripts are covered by
+the MIT terms in `LICENSE`, with Chartwell Macro as the identified copyright holder.
+This does not change the terms for upstream material listed below.
+
+## Bundled upstream and derived material
+
+| Component | Observed source/holder attribution | Terms URL and recorded terms |
+|---|---|---|
+| `inst/extdata/budget-vintage-observations.csv` | Mixed Treasury Budget and PBO-derived observations; each row retains source URL/hash fields. Corresponding Treasury release-manifest rows record `© Commonwealth of Australia`. | Treasury: <https://budget.gov.au/legal-notices.htm#h1>, Creative Commons Attribution 4.0 International subject to publisher exceptions. PBO-sourced rows retain the PBO terms below; no single package-wide data license is asserted. |
+| `inst/extdata/myefo-vintage-observations.csv` | Mixed Treasury MYEFO and PBO-derived observations; each row retains source URL/hash fields. Corresponding Treasury release-manifest rows record `© Commonwealth of Australia`. | Treasury: <https://budget.gov.au/legal-notices.htm#h1>, Creative Commons Attribution 4.0 International subject to publisher exceptions. PBO-sourced rows retain the PBO terms below; no single package-wide data license is asserted. |
+| `inst/extdata/pbo-historical-observations.csv.gz` | The Parliamentary Budget Office Historical Fiscal Data product; recorded attribution `The Parliamentary Budget Office - pbo.gov.au`. | <https://www.pbo.gov.au/copyright-information>, Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International as recorded by the source notice. The package does not claim permission to redistribute or create/distribute derivatives of the normalized panel. |
+| `inst/extdata/releases.csv` | Release metadata for Australian Treasury, Department of Finance, and Parliamentary Budget Office resources. | Each release row carries its own `terms_url`, `license`, and `attribution`; these are release-level fields and do not relicense source bytes or derived observations. |
+| `inst/extdata/budget-archive-*.csv` and `inst/extdata/budget-archive-metadata.json` | Catalogue/index metadata for official Australian Government Budget documents; source URLs and index URLs are retained. | The applicable resource-level terms must be consulted. Rows for which the official resource does not state a license remain unlicensed in the catalogue; no license is inferred. |
+| `inst/extdata/ba_idx/*.html` | Captured Australian Government Budget index pages, with source URLs/hashes recorded in `budget-archive-indexes.csv`. The pages reference the Commonwealth Coat of Arms, Budget logo, fonts, scripts, analytics services, and third-party sites. All 70 captures also reproduce a Google tag loader inline, and 10 reproduce a Hotjar/Contentsquare loader inline. | <https://budget.gov.au/legal-notices.htm#h1> for Treasury-owned Budget material, subject to the Coat of Arms, logo, and third-party exceptions. Remote asset bodies are not bundled, but the inline third-party loader code is part of the captures. No whole-file licence or downstream permission covering every composite capture is asserted by this package. |
+| `inst/evidence/` PNG/CSV artifacts | Package-generated evidence and charts based on official Treasury/Finance values; source notes and hashes are retained in the evidence files. | Source terms remain applicable to source-derived values. These artifacts do not imply Australian Government, Treasury, Finance, or PBO endorsement. |
+| `man/figures/treasury-total-receipts.png` | Documentation chart generated from the curated Treasury Budget 2024–25 cash-receipts series after reading the selected Table 1 CSV (`https://archive.budget.gov.au/2024-25/bp1/download/bp1_s5-online_t1.csv`, SHA-256 `2db5571dea5dba82cd90679f3db3796bb4ca308a862d89c6e53cdf2f4fce9597`). Six later points retain observation provenance to the official Budget Paper Table 5.7 PDF, as recorded by the reader. | Treasury terms: <https://budget.gov.au/legal-notices.htm#h1>; recorded Creative Commons Attribution 4.0 International. Attribution: © Commonwealth of Australia. The chart does not imply government endorsement. |
+| `tests/testthat/fixtures/` | Tiny deterministic replay fixtures; generator comments identify them as official-shaped fixtures rather than a full archive redistribution. | Generated/synthetic fixture content is package material where original. Any exact upstream extract remains subject to its upstream terms; no broader license is asserted here. |
+
+## Release-level versus observation-level provenance
+
+The `terms_url`, `license`, and `attribution` columns in
+`inst/extdata/releases.csv` describe the selected release/resource row. They
+are not a blanket license for every row in `budget-vintage-observations.csv`
+or `myefo-vintage-observations.csv`. Those panels carry
+`observation_source_url` and `observation_source_sha256`; use those fields to
+identify the source of each derived observation. In particular, PBO-derived
+rows remain subject to the PBO terms above even when the enclosing release row
+is a Treasury release.
+
+The PBO Historical Fiscal Data product is the source family for
+`pbo-historical-observations.csv.gz` and completed historical series. The
+separate Historical budget forecasts and measures products are source workbooks
+for selected Budget/MYEFO vintage observations. They are distinct PBO
+products, and this package does not treat one product's description or terms
+as a substitute for the other's.
+
+## Department of Finance distinction
+
+The built-in data.gov.au workbook resources record the Australian Government
+Department of Finance attribution and Creative Commons Attribution 3.0
+Australia at <https://creativecommons.org/licenses/by/3.0/au/>. This differs
+from the Finance website notice at
+<https://www.finance.gov.au/about-us/copyright-notice>, which records Creative
+Commons Attribution 4.0 International for website material subject to its
+listed exceptions and attribution `© Commonwealth of Australia, Department of
+Finance`. Do not substitute the website terms for the resource-level workbook
+terms.
+
+## Reuse rule
+
+Retain the source URL, terms URL, license string, attribution, and exact
+release/hash metadata when reusing source-derived material. Storage in a local
+cache or archive, parsing, normalization, selection, or chart generation does
+not itself expand publisher rights or create permission to remove source
+notices. Consult the current publisher notice for a particular resource before
+commercial reuse, redistribution, or derivative work.

@@ -1,0 +1,126 @@
+---
+title: "Provenance, exact bytes, and the cache"
+author: "Chartwell Macro"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Provenance, exact bytes, and the cache}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", error = FALSE)
+library(readfiscalau)
+source("_helpers.R")
+```
+
+`readfiscalau` makes source reads reproducible in two complementary ways: the
+returned rows retain release/source semantics, and the provenance attribute
+identifies the exact bytes and parser contract used to produce them. This
+article shows how to replay a read offline and how to verify reuse of a trusted
+cache snapshot.
+
+## Replay exact bytes without the network
+
+The `raw` argument bypasses transport while still validating the declared
+media type, parsing the bytes, and writing an explicitly chosen cache
+snapshot. This uses the packaged chart-data-shaped fixture:
+
+```{r raw-replay}
+cache_dir <- tempfile("readfiscalau-cache-")
+dir.create(cache_dir)
+raw_bytes <- example_raw("budget-current.csv")
+first <- read_au_budget(
+  example_budget_release(),
+  raw = raw_bytes,
+  cache_dir = cache_dir
+)
+first_provenance <- attr(first, "readfiscalau_provenance")
+c(
+  rows = nrow(first),
+  raw_bytes = first_provenance$response_bytes,
+  raw_content_sha256 = first_provenance$raw_content_sha256,
+  cache_hit = first_provenance$cache_hit
+)
+```
+
+The hash is calculated from the raw bytes, not from the parsed tibble. The
+result also carries release-level terms and the resource identity used by the
+fixture manifest.
+
+```{r row-provenance}
+first[, c("release_id", "resource_url", "vintage_date", "retrieved_at",
+          "raw_content_sha256", "terms_url", "license", "attribution")]
+```
+
+For curated Budget/MYEFO panels, do not treat those release-level fields as a
+licence for every value. `license`, `terms_url`, `attribution`, and
+`raw_content_sha256` identify the selected release bytes. The local coverage
+catalogues additionally expose `observation_source_url` and
+`observation_source_sha256`; parsed curated reads retain the corresponding
+source pairs in `readfiscalau_provenance$archive_member$observation_sources`.
+When an observation source is a PBO *Historical budget forecasts and measures*
+workbook, apply the PBO copyright notice and its CC BY-NC-ND 4.0 International
+caveat. Treasury release terms do not license PBO-derived observations.
+
+## Reuse a verified cache snapshot
+
+When no `raw` is supplied, the reader checks for a verified, namespaced cache
+snapshot before calling transport. An injected fetcher lets this behavior be
+demonstrated without contacting the network:
+
+```{r fetcher-replay}
+fixture_fetcher <- function(url) {
+  list(
+    raw = raw_bytes,
+    status = 200L,
+    content_type = "text/csv",
+    final_url = url,
+    retrieved_at = "2026-08-24 00:00:00 UTC"
+  )
+}
+cache_release <- example_budget_release()
+cache_release$expected_sha256 <- digest::digest(
+  raw_bytes, algo = "sha256", serialize = FALSE
+)
+from_fetcher <- read_au_budget(
+  cache_release,
+  cache_dir = cache_dir,
+  fetcher = fixture_fetcher
+)
+from_cache <- read_au_budget(
+  cache_release,
+  cache_dir = cache_dir,
+  fetcher = function(...) stop("the verified cache should be used")
+)
+c(
+  first_call_cache_hit = attr(from_fetcher, "readfiscalau_provenance")$cache_hit,
+  second_call_cache_hit = attr(from_cache, "readfiscalau_provenance")$cache_hit,
+  same_values = identical(from_fetcher$value, from_cache$value)
+)
+```
+
+Cache files are hash-addressed and namespaced by release metadata, resource
+update, expected hash, schema, parser version, and contract/parser revisions.
+`readfiscalau_cache_prune()` can bound aggregate bytes, file count, and age;
+pass `preserve` when a snapshot must not be removed.
+
+```{r cache-location}
+basename(readfiscalau_default_cache())
+```
+
+The default is a platform user-cache directory, not the package source tree.
+The package does not download source data during installation or load.
+
+## Scope of provenance and source terms
+
+Provenance identifies the source and transformation contract for a result. It
+does not change which content a reader supports or grant new reuse rights.
+Consult `inst/TERMS.md` and the source-level terms before redistributing any
+bytes or derived data. Treasury, Finance, and PBO resources have different
+terms and publisher exceptions.
+
+For a full history result, retain `readfiscalau_history_provenance` or
+`readfiscalau_monthly_history_provenance` as well as the row-level release
+fields. These attributes describe resolution rules, coverage, derivation, and
+the June/accounting-boundary rules that cannot be inferred from values alone.

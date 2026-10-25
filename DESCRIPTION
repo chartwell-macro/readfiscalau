@@ -1,0 +1,40 @@
+Package: readfiscalau
+Title: Versioned Australian Commonwealth Fiscal Data and Documents
+Version: 0.1.4
+Authors@R: c( person(given = "Chartwell", family = "Macro", role = c("aut",
+        "cre", "cph"), email = "chartwellmacro@gmail.com") )
+Description: Discovers, snapshots, and parses selected Australian
+        Commonwealth fiscal releases from the Australian Treasury,
+        Department of Finance, and Parliamentary Budget Office,
+        preserving publication-vintage, accounting, and source
+        provenance with each observation. It provides
+        offline-replayable readers for Budget, MYEFO, Final Budget
+        Outcome, monthly financial, and PBO historical data and PBO
+        historical forecast vintages, stores exact source bytes in a
+        bounded, hash-addressed cache, and uses credential-free HTTPS
+        transport. A bundled static snapshot exposes canonical series
+        and complete tables for selected Budget and MYEFO families from
+        2000-01 onward without runtime PDF parsing, including pinned
+        Treasury chart-data CSV/ZIP members where available. It also
+        inventories official Australian Government Budget documents and
+        can preserve them in a separate append-only, content-addressed
+        archive.
+License: MIT + file LICENSE
+URL: https://github.com/chartwell-macro/readfiscalau,
+        https://github.com/chartwell-macro/readfiscalau
+BugReports: https://github.com/chartwell-macro/readfiscalau/issues
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Depends: R (>= 4.1.0)
+Imports: digest, httr2, jsonlite, readxl, stats, tibble, tools, utils,
+        xml2
+Suggests: ggplot2, knitr, ps, rmarkdown, testthat (>= 3.0.0)
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+Config/Needs/website: pkgdown
+Config/Needs/coverage: covr
+Config/ChartwellPatchSHA256:
+        c1038c17d7a628081c0f63970868c865e4b7d9e49148bcf116dfc7cbb1243163
+NeedsCompilation: no
+Config/ChartwellReviewedBaselineSHA: 78ad9ea6c35e480aba29beb19067763b64459496

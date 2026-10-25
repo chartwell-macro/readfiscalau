@@ -1,0 +1,115 @@
+---
+title: "Budget archive catalogue and preservation"
+author: "Chartwell Macro"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Budget archive catalogue and preservation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", error = FALSE)
+library(readfiscalau)
+```
+
+`readfiscalau` supports a reviewable workflow for discovering, preserving, and
+validating official Australian Budget archive material. The archive API is
+separate from the release readers: it captures official index evidence,
+discovers direct document candidates, admits selected bytes into a durable
+content-addressed store, and validates the inventory and explicit gap ledger.
+Use the release readers when you need parsed fiscal data; the archive catalogue
+records discovery and preservation evidence, while parseability is established
+separately by each typed reader.
+
+## Inspect the bundled catalogue first
+
+The installed package carries a small machine-readable catalogue and captured
+index snapshots. Reading and filtering it is local and safe:
+
+```{r catalogue}
+catalogue <- read_au_budget_archive_catalogue()
+lapply(catalogue, function(x) if (is.data.frame(x)) dim(x) else length(x))
+```
+
+```{r candidates}
+head(list_au_budget_archive_candidates(
+  budget_vintage = "2025-26",
+  availability = "available"
+)[, c("budget_vintage", "title", "document_role",
+      "source_url", "availability")])
+```
+
+The bundled candidate inventory spans the advertised official Budget range from
+1901–02 through 2026–27. Its 70 captured index snapshots begin at 1926–27, so
+the snapshot count should not be read as 70 snapshots covering every year from
+1901–02. This is discovery evidence, not a copy of the approximately 2.33 GiB
+corpus of document bytes. Missing years, broken links, insecure links, and
+failed signatures remain explicit gap rows.
+
+The durable archive location is separate from the bounded response cache:
+
+```{r locations}
+cache_path <- readfiscalau_default_cache()
+archive_path <- readfiscalau_default_archive_dir()
+c(
+  cache = basename(cache_path),
+  archive = basename(archive_path),
+  distinct = !identical(cache_path, archive_path)
+)
+```
+
+Set `READFISCALAU_BUDGET_ARCHIVE_DIR` when an operator needs a shared or
+dedicated data volume. Do not point it at the package checkout in production.
+
+## The explicit preservation workflow
+
+The workflow has four distinct steps:
+
+1. `crawl_au_budget_archive()` fetches the official root/year indexes and
+   returns `documents`, `indexes`, `gaps`, and `root_entries`. Candidate
+   document bytes are fetched only in the explicit admission step below.
+2. `list_au_budget_archive_candidates()` or the crawl result is reviewed and
+   filtered by vintage, role, availability, or revision status.
+3. `archive_au_budget_documents()` admits only those explicit candidates. It
+   stages one document at a time, checks size/media/signature, hashes the exact
+   bytes, atomically writes the object, and checkpoints inventory/gap ledgers.
+4. `validate_au_budget_archive()` checks local object hashes/sizes and accounts
+   for each discovered URL through inventory or a durable gap.
+
+The large, networked and stateful step is illustrated below rather than run
+during vignette builds. Run it after reviewing the candidates and ensuring
+enough free space for the advertised bytes plus the default 512 MiB reserve:
+
+```r
+discovery <- crawl_au_budget_archive()
+selected <- discovery$documents[
+  discovery$documents$budget_vintage == "2025-26", , drop = FALSE
+]
+admitted <- archive_au_budget_documents(
+  candidates = selected,
+  archive_dir = readfiscalau_default_archive_dir(),
+  continue_on_error = TRUE,
+  progress = TRUE
+)
+validation <- validate_au_budget_archive(
+  archive_dir = readfiscalau_default_archive_dir(),
+  discovery = discovery,
+  archive = list(inventory = admitted)
+)
+```
+
+An archive is append-only and preserves replacements as separate attributable
+objects. `list_au_budget_archive()` exposes the immutable ledger; it does not
+collapse replacement vintages into one “latest” row.
+
+## Scope, provenance, and limits
+
+Each admitted row retains source/index URLs, retrieval time, media type, hash,
+terms URL, licence, attribution, and revision linkage. A locally stored object
+does not expand its source licence or imply publisher endorsement. Consult
+`inst/TERMS.md` for the source-level notices.
+
+Archive validation can be complete with respect to the accounted catalogue
+while still retaining explicit gaps for unavailable official links. Treat
+`gaps` as part of the result, not as an implementation detail.
